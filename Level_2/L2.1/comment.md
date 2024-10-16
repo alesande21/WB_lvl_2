@@ -12,6 +12,8 @@
 * Паттерн «Состояние».
 
 ### Комментарий
+[Include](./facade/comment.md)
+[Include](./builder/comment.md)
 
 
 
