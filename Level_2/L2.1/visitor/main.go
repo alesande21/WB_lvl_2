@@ -6,24 +6,16 @@ import (
 )
 
 func main() {
-	//arr := []Transportable{&Person{
-	//	fare: 200,
-	//	numb: 2,
-	//}, &Animal{
-	//	fare: 100,
-	//	numb: 1,
-	//}, &Luggage{
-	//	fare:   120,
-	//	weight: 5,
-	//}}
+
+	dispatcher := callTaxi.NewCabCompanyDispatcher()
+
+	dispatcher.AddElement(callTaxi.NewPerson(200, 2)).
+		AddElement(callTaxi.NewAnimal(150, 1)).
+		AddElement(callTaxi.NewLuggage(120, 2))
 
 	taxi := callTaxi.NewTaxi()
 
-	taxi.VisitPerson(callTaxi.NewPerson(200, 2))
-
-	taxi.VisitAnimal(callTaxi.NewAnimal(150, 1))
-
-	taxi.VisitLuggage(callTaxi.NewLuggage(120, 2))
+	dispatcher.Accept(taxi)
 
 	fmt.Println("Сумма заказа: ", taxi.GetTotalFare())
 }
