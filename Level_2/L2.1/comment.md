@@ -15,6 +15,7 @@
 [Фасад](./facade/comment.md)
 [Строитель](./builder/comment.md)
 [Посетитель](./visitor/comment.md)
+[Комманда](./command/comment.md)
 
 
 
