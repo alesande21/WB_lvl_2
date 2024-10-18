@@ -16,8 +16,9 @@
 [Строитель](./builder/comment.md)
 [Посетитель](./visitor/comment.md)
 [Комманда](./command/comment.md)
-
+[Цепочка вызовов](./chainOfResponsibility/comment.md)
 
 
 https://otus.ru/nest/post/2212/
 https://habr.com/ru/articles/87110/
+https://github.com/iluwatar/java-design-patterns/blob/master/chain-of-responsibility/README.md
