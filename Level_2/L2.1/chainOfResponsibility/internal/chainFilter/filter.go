@@ -56,7 +56,7 @@ type FilterRiskLevel struct {
 
 func (f *FilterRiskLevel) DoFilter(request *Request, chain FilterChain) {
 	fmt.Println("FilterRiskLevel обрабатывает запрос...")
-	if request.GetFrom().GetClientRiskLevel() < f.average && request.GetTo().GetClientRiskLevel() < f.average {
+	if request.GetFrom().GetClientRiskLevel() <= f.average && request.GetTo().GetClientRiskLevel() <= f.average {
 		chain.DoFilter(request)
 	}
 	fmt.Println("FilterRiskLevel завершил обработку...")
@@ -75,7 +75,7 @@ func (f *FilterTransfer) DoFilter(request *Request, chain FilterChain) {
 	fmt.Println("FilterTransfer обрабатывает запрос...")
 	if request.GetTransferAmount() <= f.materiality && request.GetFrom().GetBalance() >= request.GetTransferAmount() {
 		request.MakeTransfer()
-		fmt.Printf("Запрос %s на сумму %f выполнен", request.GetId(), request.GetTransferAmount())
+		fmt.Printf("Запрос %s на сумму %f выполнен\n", request.GetId(), request.GetTransferAmount())
 	}
 
 	fmt.Println("FilterTransfer завершил обработку...")
