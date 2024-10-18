@@ -17,6 +17,7 @@
 [Посетитель](./visitor/comment.md)
 [Комманда](./command/comment.md)
 [Цепочка вызовов](./chainOfResponsibility/comment.md)
+[Фабричный метод](./factoryMethod/comment.md)
 
 
 https://otus.ru/nest/post/2212/
