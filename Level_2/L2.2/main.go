@@ -1,15 +1,11 @@
 package main
 
 import (
-	"fmt"
-	ntp2 "github.com/beevik/ntp"
+	exactTimeV2 "github.com/alesande21/exactTime/v2"
+	"os"
 )
 
+// функция запускает программу, которая вызывает функцию GetTime для получения и отображения точного времени
 func main() {
-	time, err := ntp2.Time("0.beevik-ntp.pool.ntp.org")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(time)
+	os.Exit(exactTimeV2.GetTime())
 }
