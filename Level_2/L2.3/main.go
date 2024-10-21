@@ -6,7 +6,8 @@ import (
 )
 
 func main() {
-	var str string = "45"
+	var str string = "qwe\\\\5"
+	//fmt.Println(str)
 	//_, err := fmt.Fscanf(os.Stdin, "%s", &str)
 	//if err != nil {
 	//	fmt.Printf("Ошибка при считывании %s", err)

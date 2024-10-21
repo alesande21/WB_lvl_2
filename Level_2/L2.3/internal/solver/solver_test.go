@@ -57,7 +57,31 @@ func TestSolution_StringUnpacking(t *testing.T) {
 			want:    "aaaabccddddde",
 			wantErr: false,
 		},
+		{
+			name:    "Escape-последовательност выводит числа",
+			args:    args{"qwe\\4\\5"},
+			want:    "qwe45",
+			wantErr: false,
+		},
+		{
+			name:    "Escape-последовательност выводит числа с повторением",
+			args:    args{"qwe\\45"},
+			want:    "qwe44444",
+			wantErr: false,
+		},
+		{
+			name:    "Escape-последовательност выводит \\ с повторением",
+			args:    args{"qwe\\\\5"},
+			want:    "qwe\\\\\\\\\\",
+			wantErr: false,
+		},
 	}
+
+	/*
+		qwe\4\5 => qwe45 (*)
+		qwe\45 => qwe44444 (*)
+		qwe\\5 => qwe\\\\\ (*)
+	*/
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Solution{}

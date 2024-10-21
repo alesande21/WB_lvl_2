@@ -23,16 +23,30 @@ func (s *Solution) StringUnpacking(str string) (string, error) {
 
 	stack := make(stack2.Stack[rune], 0)
 	var b strings.Builder
-	//prevNum := false
+	runEscapeSequences := false
 
 	for i := 0; i < len(str); {
 		runeValue, width := utf8.DecodeRuneInString(str[i:])
-		if s.isNum(runeValue) {
+
+		if runeValue == 92 && !runEscapeSequences {
+			if stack.Len() != 0 {
+				prevRune := stack.Pop()
+				b.WriteRune(prevRune)
+			}
+			runEscapeSequences = true
+		} else if s.isNum(runeValue) {
+			if runEscapeSequences {
+				stack.Push(runeValue)
+				i += width
+				runEscapeSequences = false
+				continue
+			}
 			if stack.Len() == 0 {
 				return "", fmt.Errorf("ошибка некорректная строка: %s", str)
 			}
 
 			//val := int(runeValue) - 48
+
 			prevRune := stack.Pop()
 			for j := 0; j < int(runeValue)-48; j++ {
 				b.WriteRune(prevRune)
@@ -43,6 +57,7 @@ func (s *Solution) StringUnpacking(str string) (string, error) {
 				b.WriteRune(prevRune)
 			}
 			stack.Push(runeValue)
+			runEscapeSequences = false
 		}
 
 		//fmt.Printf("%d %#U starts at byte position %d\n", runeValue, runeValue, i+width)
