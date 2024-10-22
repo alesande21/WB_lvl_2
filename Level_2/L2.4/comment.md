@@ -17,3 +17,5 @@
 -h — сортировать по числовому значению с учетом суффиксов.
 
 ### Комментарий
+
+https://www.opennet.ru/man.shtml?topic=sort&category=1&russian=0
