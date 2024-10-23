@@ -15,6 +15,10 @@ func main() {
 		fmt.Printf("Ошибка: fl.ParseFlags %s\n", err)
 	}
 
-	s.Run(flags, filePath)
-	fmt.Println(fl, filePath)
+	err = s.Run(flags, filePath)
+	if err != nil {
+		fmt.Printf("s.Run%s", err)
+		return
+	}
+	//fmt.Println(flags, filePath)
 }

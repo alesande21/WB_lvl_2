@@ -7,7 +7,7 @@ import (
 )
 
 type FilePath struct {
-	path string
+	Path string
 }
 
 type Parser struct{}
