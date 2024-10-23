@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"slices"
 	"sort"
 	"sort_command/internal/parser"
 	"strconv"
@@ -14,10 +15,14 @@ import (
 
 type Sort struct {
 	lines []string
+	m     map[string]bool
 }
 
 func NewSorter() *Sort {
-	return &Sort{}
+	return &Sort{
+		lines: make([]string, 0),
+		m:     make(map[string]bool),
+	}
 }
 
 func (s *Sort) LessForNumbers(i, j int) bool {
@@ -66,6 +71,35 @@ func (s *Sort) sortByNumbers(lines []string) []string {
 	return lines
 }
 
+func (s *Sort) sortReverse(lines []string) []string {
+	//res := make([]string, len(lines))
+
+	sort.Strings(s.lines)
+	slices.Reverse(s.lines)
+
+	return lines
+}
+
+func (s *Sort) LessForUnique(i, j int) bool {
+
+	comp := strings.Compare(s.lines[i], s.lines[j])
+
+	if comp == 0 {
+		s.m[s.lines[i]] = true
+		return false
+	}
+
+	return comp == -1
+}
+
+func (s *Sort) sortUnique(lines []string) []string {
+	//res := make([]string, len(lines))
+
+	sort.Slice(lines, s.LessForUnique)
+
+	return lines
+}
+
 func (s *Sort) Run(flags *parser.Flag, filePath *parser.FilePath) error {
 
 	if flags == nil {
@@ -93,12 +127,27 @@ func (s *Sort) Run(flags *parser.Flag, filePath *parser.FilePath) error {
 	//	fmt.Println(l)
 	//}
 
-	if *flags.N() == true {
+	if flags.N() {
 		s.sortByNumbers(s.lines)
+	} else if flags.R() {
+		s.sortReverse(s.lines)
+	} else if flags.U() {
+		s.sortUnique(s.lines)
+	} else if flags.K() {
+		fmt.Println("ФЛАГ K")
 	}
 	//fmt.Println("После: ")
 
 	for _, l := range s.lines {
+		if flags.U() {
+			val, ok := s.m[l]
+			if ok && val == false {
+				continue
+			} else if ok {
+				s.m[l] = false
+			}
+
+		}
 		fmt.Printf("%s\n", l)
 	}
 

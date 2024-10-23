@@ -4,7 +4,7 @@ GREEN='\e[32m'
 NC='\e[0m'
 RED='\e[31m'
 
-arr=(-n)
+arr=(-n -r -u)
 
 printf "${GREEN}-----RUNNING TESTS-----${NC}\n"
 
@@ -29,7 +29,7 @@ else
 fi
 ((c++))
 
-for (( i = 0; i < 1; i++ )) # для одного флага files/example.txt
+for (( i = 0; i < 3; i++ )) # для одного флага files/example.txt
 do
     sort ${arr[i]} files/example.txt >a
     ./main.exe ${arr[i]} files/example.txt >b
@@ -44,7 +44,7 @@ do
 ((c++))
 done
 
-for (( i = 0; i < 1; i++ )) # для одного флага files/example1.txt
+for (( i = 0; i < 3; i++ )) # для одного флага files/example1.txt
 do
     sort ${arr[i]} files/example1.txt >a
     ./main.exe ${arr[i]} files/example1.txt >b
@@ -58,15 +58,6 @@ do
     fi
 ((c++))
 done
-
-
-
-
-
-
-
-
-
 
 printf "\n ${GREEN}-----DONE[$((c - failed))/$((c))]-----${NC}\n"
 
