@@ -18,7 +18,9 @@ func NewParser() *Parser {
 
 func (p *Parser) ParseFlags() (*Flag, *FilePath, error) {
 	var f Flag
-	flag.BoolVar(&f.k, "k", false, "указание колонки для сортировки (слова в строке могут выступать "+
+	var err error
+	os.Args, _ = p.checkFlagK(&f.k)
+	flag.Var(&f.k, "k", "указание колонки для сортировки (слова в строке могут выступать "+
 		"в качестве колонок, по умолчанию разделитель — пробел)")
 	flag.BoolVar(&f.n, "n", false, "сортировать по числовому значению")
 	flag.BoolVar(&f.r, "r", false, "сортировать в обратном порядке")
@@ -45,6 +47,27 @@ func (p Parser) checkFilePath() (FilePath, error) {
 	}
 
 	return FilePath{args[0]}, nil
+}
+
+func (p *Parser) checkFlagK(fk *flagK) ([]string, error) {
+	args := os.Args
+
+	if len(args) != 3 {
+		return os.Args, nil
+	}
+
+	//fmt.Println("TUT")
+
+	newArgs := os.Args[:1]
+
+	err := fk.Set(os.Args[1])
+	if err != nil {
+		return os.Args, nil
+	}
+
+	newArgs = append(newArgs, os.Args[2])
+
+	return newArgs, nil
 }
 
 func (f Flag) String() string {

@@ -80,6 +80,7 @@ func (s *Sort) sortReverse(lines []string) []string {
 	return lines
 }
 
+// LessForUnique сортировка уникальных значений
 func (s *Sort) LessForUnique(i, j int) bool {
 
 	comp := strings.Compare(s.lines[i], s.lines[j])
@@ -92,10 +93,32 @@ func (s *Sort) LessForUnique(i, j int) bool {
 	return comp == -1
 }
 
+// sortUnique сортировка уникальных значений
 func (s *Sort) sortUnique(lines []string) []string {
 	//res := make([]string, len(lines))
 
 	sort.Slice(lines, s.LessForUnique)
+
+	return lines
+}
+
+// LessForSortByColumn сортировка по столбцу
+func (s *Sort) LessForSortByColumn(i, j int) bool {
+
+	//comp := strings.Compare(s.lines[i], s.lines[j])
+	//
+	//if comp == 0 {
+	//	s.m[s.lines[i]] = true
+	//	return false
+	//}
+
+	return true
+}
+
+// sortByColumn сортировка по столбцу
+func (s *Sort) sortByColumn(lines []string) []string {
+
+	sort.Slice(lines, s.LessForSortByColumn)
 
 	return lines
 }
@@ -134,7 +157,8 @@ func (s *Sort) Run(flags *parser.Flag, filePath *parser.FilePath) error {
 	} else if flags.U() {
 		s.sortUnique(s.lines)
 	} else if flags.K() {
-		fmt.Println("ФЛАГ K")
+		//s.sortByColumn(s.lines)
+		fmt.Println("ФЛАГ K ", flags.Col())
 	}
 	//fmt.Println("После: ")
 

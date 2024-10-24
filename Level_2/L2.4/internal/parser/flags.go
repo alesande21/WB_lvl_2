@@ -1,7 +1,13 @@
 package parser
 
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
 type Flag struct {
-	k bool
+	k flagK
 	n bool
 	r bool
 	u bool
@@ -12,7 +18,11 @@ type Flag struct {
 }
 
 func (f Flag) K() bool {
-	return f.k
+	return f.k.enabled
+}
+
+func (f Flag) Col() int {
+	return f.k.col
 }
 
 func (f Flag) N() bool {
@@ -41,4 +51,37 @@ func (f Flag) C() bool {
 
 func (f Flag) H() bool {
 	return f.h
+}
+
+type flagK struct {
+	enabled bool
+	col     int
+}
+
+func (fk *flagK) String() string {
+	if fk.enabled {
+		return strconv.Itoa(fk.col)
+	}
+	return ""
+}
+
+func (fk *flagK) Set(value string) error {
+	if value == "" {
+		fk.enabled = true
+		fk.col = 1
+	}
+
+	if strings.HasPrefix(value, "-k") {
+		value = strings.TrimPrefix(value, "-k")
+	}
+
+	col, err := strconv.Atoi(value)
+	if err != nil {
+		return fmt.Errorf("-> strconv.Atoi: ошибка при преобразовании числа флага k: %s", err)
+	}
+
+	fk.enabled = true
+	fk.col = col
+
+	return nil
 }
