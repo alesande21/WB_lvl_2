@@ -153,22 +153,27 @@ func (s *Sort) LessForSortByColumn(i, j int) bool {
 	return strI[s.col] < strJ[s.col]
 }
 
-func (s *Sort) getStr(slice []string, i int) string {
-	if i < 0 || i >= len(slice) {
-		return ""
-	}
-
-	//fmt.Println(slice[i])
-
-	return slice[i]
-}
-
 // sortByColumn сортировка по столбцу
 func (s *Sort) sortByColumn(col int, lines []string) []string {
 	s.col = col - 1
 	sort.Slice(lines, s.LessForSortByColumn)
 
 	return lines
+}
+
+// LessForSortByColumn сортировка по столбцу
+func (s *Sort) LessForCheckSlice(i, j int) bool {
+	comp := strings.Compare(s.lines[i], s.lines[j])
+	if comp != 0 {
+		s.col = j
+		return false
+	}
+	return true
+}
+
+// sortByColumn проверяет отсортирован ли фаил
+func (s *Sort) sortCheck() bool {
+	return sort.SliceIsSorted(s.lines, s.LessForCheckSlice)
 }
 
 func (s *Sort) Run(flags *parser.Flag, filePath *parser.FilePath) error {
@@ -206,6 +211,12 @@ func (s *Sort) Run(flags *parser.Flag, filePath *parser.FilePath) error {
 		s.sortUnique(s.lines)
 	} else if flags.K() {
 		s.sortByColumn(flags.Col(), s.lines)
+	} else if flags.C() {
+		res := s.sortCheck()
+		if !res {
+			fmt.Printf("sort: %s: disorder: %s", filePath.Path, s.lines[s.col])
+		}
+		return nil
 	}
 	//fmt.Println("После: ")
 
