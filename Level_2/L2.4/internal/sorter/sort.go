@@ -103,17 +103,44 @@ func (s *Sort) sortUnique(lines []string) []string {
 	return lines
 }
 
+func (s *Sort) splitWithSpaces(str string) []string {
+
+	res := make([]string, 0)
+	lastSymSpace := false
+	var b strings.Builder
+	for i := 0; i < len(str); {
+
+		runeValue, width := utf8.DecodeRuneInString(str[i:])
+
+		if runeValue == 32 && i != 0 && !lastSymSpace {
+			lastSymSpace = true
+			if b.Len() != 0 {
+				res = append(res, b.String())
+				b.Reset()
+			}
+		} else {
+			lastSymSpace = false
+			b.WriteRune(runeValue)
+		}
+
+		i += width
+	}
+
+	if b.Len() != 0 {
+		res = append(res, b.String())
+	}
+	return res
+}
+
 // LessForSortByColumn сортировка по столбцу
 func (s *Sort) LessForSortByColumn(i, j int) bool {
-	re := regexp.MustCompile(`\s+`)
-	cleanedLine := re.ReplaceAllString(s.lines[i], " ")
-	strI := strings.Split(cleanedLine, " ")
 
-	cleanedLine = re.ReplaceAllString(s.lines[j], " ")
-	strJ := strings.Split(cleanedLine, " ")
+	strI := s.splitWithSpaces(s.lines[i])
+	strJ := s.splitWithSpaces(s.lines[j])
 
-	//strI := strings.Fields(s.lines[i])
-	//strJ := strings.Fields(s.lines[j])
+	if len(strI) < s.col && len(strJ) < s.col {
+		return strI[0] < strJ[0]
+	}
 
 	if len(strI) < s.col {
 		return true
@@ -122,10 +149,6 @@ func (s *Sort) LessForSortByColumn(i, j int) bool {
 	if len(strJ) < s.col {
 		return false
 	}
-
-	//comp := strings.Compare(strI[s.col], strJ[s.col])
-
-	fmt.Printf("strI:%s, strJ:%s\n", strI[s.col], strJ[s.col])
 
 	return strI[s.col] < strJ[s.col]
 }
