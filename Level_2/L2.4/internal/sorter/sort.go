@@ -16,6 +16,7 @@ import (
 type Sort struct {
 	lines []string
 	m     map[string]bool
+	col   int
 }
 
 func NewSorter() *Sort {
@@ -104,20 +105,44 @@ func (s *Sort) sortUnique(lines []string) []string {
 
 // LessForSortByColumn сортировка по столбцу
 func (s *Sort) LessForSortByColumn(i, j int) bool {
+	re := regexp.MustCompile(`\s+`)
+	cleanedLine := re.ReplaceAllString(s.lines[i], " ")
+	strI := strings.Split(cleanedLine, " ")
 
-	//comp := strings.Compare(s.lines[i], s.lines[j])
-	//
-	//if comp == 0 {
-	//	s.m[s.lines[i]] = true
-	//	return false
-	//}
+	cleanedLine = re.ReplaceAllString(s.lines[j], " ")
+	strJ := strings.Split(cleanedLine, " ")
 
-	return true
+	//strI := strings.Fields(s.lines[i])
+	//strJ := strings.Fields(s.lines[j])
+
+	if len(strI) < s.col {
+		return true
+	}
+
+	if len(strJ) < s.col {
+		return false
+	}
+
+	//comp := strings.Compare(strI[s.col], strJ[s.col])
+
+	fmt.Printf("strI:%s, strJ:%s\n", strI[s.col], strJ[s.col])
+
+	return strI[s.col] < strJ[s.col]
+}
+
+func (s *Sort) getStr(slice []string, i int) string {
+	if i < 0 || i >= len(slice) {
+		return ""
+	}
+
+	//fmt.Println(slice[i])
+
+	return slice[i]
 }
 
 // sortByColumn сортировка по столбцу
-func (s *Sort) sortByColumn(lines []string) []string {
-
+func (s *Sort) sortByColumn(col int, lines []string) []string {
+	s.col = col - 1
 	sort.Slice(lines, s.LessForSortByColumn)
 
 	return lines
@@ -157,8 +182,7 @@ func (s *Sort) Run(flags *parser.Flag, filePath *parser.FilePath) error {
 	} else if flags.U() {
 		s.sortUnique(s.lines)
 	} else if flags.K() {
-		//s.sortByColumn(s.lines)
-		fmt.Println("ФЛАГ K ", flags.Col())
+		s.sortByColumn(flags.Col(), s.lines)
 	}
 	//fmt.Println("После: ")
 

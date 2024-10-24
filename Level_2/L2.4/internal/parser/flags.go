@@ -75,8 +75,14 @@ func (fk *flagK) Set(value string) error {
 		value = strings.TrimPrefix(value, "-k")
 	}
 
+	if value == "" {
+		fk.enabled = true
+		fk.col = 1
+		return nil
+	}
+
 	col, err := strconv.Atoi(value)
-	if err != nil {
+	if err != nil || col < 1 {
 		return fmt.Errorf("-> strconv.Atoi: ошибка при преобразовании числа флага k: %s", err)
 	}
 
