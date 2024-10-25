@@ -28,6 +28,9 @@ func getCommand(text string) (string, string, error) {
 	} else if strings.HasPrefix(text, "ps") {
 		command = "ps"
 		text = strings.TrimPrefix(text, "ps")
+	} else if strings.HasPrefix(text, "pwd") {
+		command = "pwd"
+		text = strings.TrimPrefix(text, "pwd")
 	} else {
 		return "", "", fmt.Errorf("команда не распознана: %v", text)
 	}
@@ -66,11 +69,22 @@ func main() {
 				fmt.Printf("cd : Не удается найти путь %s, так как он не существует.\n", newPath)
 			}
 		case "echo":
-			fmt.Printf("echo %s\n", text)
+			if len(text) != 0 {
+				fmt.Printf("%v\n", text)
+			}
 		case "kill":
 			fmt.Printf("kill %s\n", text)
 		case "ps":
 			fmt.Printf("ps %s\n", text)
+		case "pwd":
+			curPath, err := myShell.Pwd(text)
+			if err != nil {
+				fmt.Printf("Get-Location : %s", err)
+			} else {
+				fmt.Printf("\nPath\n---\n%s\n\n\n", curPath)
+			}
+		default:
+			fmt.Printf("такая команда не обнаружена: %s", command)
 		}
 	}
 	//select {}

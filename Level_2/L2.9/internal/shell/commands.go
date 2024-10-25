@@ -32,3 +32,14 @@ func (ms *MyShell) Cd(path string) (string, error) {
 	ms.currentLocation = newPath
 	return newPath, nil
 }
+
+func (ms *MyShell) Pwd(text string) (string, error) {
+	if text != "" {
+		return "", fmt.Errorf(": Не удается найти позиционный параметр, принимающий аргумент: %s", text)
+	}
+	return ms.CurrentLocation(), nil
+}
+
+func (ms *MyShell) Echo(text string) (string, error) {
+	return "", nil
+}
