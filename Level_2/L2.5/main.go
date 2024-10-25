@@ -1,26 +1,22 @@
 package main
 
 import (
+	"dictionary/internal/dictionary"
 	"fmt"
 )
 
-func binary(s string) string {
-	res := ""
-	for _, c := range s {
-		res = fmt.Sprintf("%s%.8b", res, c)
-	}
-	return res
-}
 func main() {
+	words := []string{"пятак", "пятка", "тяпка", "листок", "слиток", "столик"}
 
-	//str := "пятак"
-	//str2 := "пятка"
+	dict := dictionary.NewDictionary()
 
-	var i int64
+	m := dict.CreateDictionary(words)
 
-	i |= 1 << 11
-	i |= 1 << 0
-	fmt.Printf("%b\n", i)
-	//fmt.Printf("%v\n", binary(str2))
-
+	for key, value := range *m {
+		fmt.Printf("{Key: %v Value: ", key)
+		for _, word := range value {
+			fmt.Printf("%s ", word)
+		}
+		fmt.Printf("}\n")
+	}
 }

@@ -17,6 +17,9 @@ func NewDictionary() *Dictionary {
 func (d *Dictionary) CreateDictionary(str []string) *map[[33]int32][]string {
 
 	for _, word := range str {
+		if utf8.RuneCountInString(word) < 2 {
+			continue
+		}
 		key, lowerCase, err := d.getKeyForWord(word)
 		if err != nil {
 			fmt.Printf("CreateDictionary-> d.getKeyForWord%s", err)
@@ -24,11 +27,7 @@ func (d *Dictionary) CreateDictionary(str []string) *map[[33]int32][]string {
 		}
 
 		multitude, ok := d.dic[key]
-
-		if !ok {
-			multitude = append(multitude, lowerCase)
-			d.dic[key] = multitude
-		} else if ok = d.CheckMultitude(multitude, word); ok {
+		if !ok || !d.checkMultitude(multitude, word) {
 			multitude = append(multitude, lowerCase)
 			d.dic[key] = multitude
 		}
@@ -37,10 +36,41 @@ func (d *Dictionary) CreateDictionary(str []string) *map[[33]int32][]string {
 	return &d.dic
 }
 
-func (d *Dictionary) CheckMultitude(multitude []string, word string) bool {
-
+func (d *Dictionary) checkMultitude(multitude []string, word string) bool {
+	for _, m := range multitude {
+		if strings.Compare(m, word) == 0 {
+			return true
+		}
+	}
+	return false
 }
 
+func (d *Dictionary) getKeyForWord(w string) ([33]int32, string, error) {
+	var key [33]int32
+	var b strings.Builder
+	for i := 0; i < len(w); {
+
+		runeValue, width := utf8.DecodeRuneInString(w[i:])
+		if runeValue >= 1040 && runeValue < 1072 {
+			key[runeValue-1040] += 1
+			b.WriteRune(runeValue + 32)
+		} else if runeValue == 1025 || runeValue == 1105 {
+			key[32] += 1
+			b.WriteRune(1105)
+		} else if runeValue >= 1072 && runeValue < 1104 {
+			key[runeValue-1072] += 1
+			b.WriteRune(runeValue)
+		} else {
+			return key, "", fmt.Errorf(": в строке присуствую не русские символы/код руны: %s/%d\n", w, runeValue)
+		}
+
+		i += width
+	}
+
+	return key, b.String(), nil
+}
+
+/*
 func (d *Dictionary) getKeyForWord(w string) ([33]int32, string, error) {
 	var key [33]int32
 	var b strings.Builder
@@ -64,7 +94,7 @@ func (d *Dictionary) getKeyForWord(w string) ([33]int32, string, error) {
 			key[runeValue-208] += 1
 			b.WriteRune(runeValue)
 		} else {
-			return key, "", fmt.Errorf(": в строке присуствую не русские символы: %s", w)
+			return key, "", fmt.Errorf(": в строке присуствую не русские символы/код руны: %s/%d\n", w, runeValue)
 		}
 
 		i += width
@@ -72,3 +102,4 @@ func (d *Dictionary) getKeyForWord(w string) ([33]int32, string, error) {
 
 	return key, "", nil
 }
+*/
