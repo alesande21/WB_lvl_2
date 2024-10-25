@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	words := []string{"пятак", "пятка", "тяпка", "листок", "слиток", "столик"}
+	words := []string{"пятак", "пятка", "тяпка", "листок", "слиток", "столик", "лток"}
 
 	dict := dictionary.NewDictionary()
 
