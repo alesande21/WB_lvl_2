@@ -2,6 +2,7 @@ package dictionary
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"unicode/utf8"
 )
@@ -32,6 +33,14 @@ func (d *Dictionary) CreateDictionary(str []string) *map[[33]int32][]string {
 			d.dic[key] = multitude
 		}
 
+	}
+
+	for key, words := range d.dic {
+		if len(words) <= 1 {
+			delete(d.dic, key)
+		} else {
+			sort.Strings(words)
+		}
 	}
 	return &d.dic
 }
