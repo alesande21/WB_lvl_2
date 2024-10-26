@@ -75,7 +75,10 @@ func main() {
 		case "kill":
 			fmt.Printf("kill %s\n", text)
 		case "ps":
-			fmt.Printf("ps %s\n", text)
+			_, err := myShell.Ps(text)
+			if err != nil {
+				fmt.Printf("myShell.Ps:%s", err)
+			}
 		case "pwd":
 			curPath, err := myShell.Pwd(text)
 			if err != nil {

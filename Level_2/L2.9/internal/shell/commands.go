@@ -43,3 +43,18 @@ func (ms *MyShell) Pwd(text string) (string, error) {
 func (ms *MyShell) Echo(text string) (string, error) {
 	return "", nil
 }
+
+func (ms *MyShell) Ps(text string) (string, error) {
+	matches, err := filepath.Glob("/proc/*/exe")
+	if err != nil {
+		return "", fmt.Errorf("-> filepath.Glob: %s", err)
+	}
+	for _, file := range matches {
+		target, _ := os.Readlink(file)
+		if len(target) > 0 {
+			fmt.Printf("%+v\n", target)
+		}
+	}
+
+	return "", nil
+}
