@@ -47,14 +47,20 @@ func (ms *MyShell) Echo(text string) (string, error) {
 func (ms *MyShell) Ps(text string) (string, error) {
 	matches, err := filepath.Glob("/proc/*/exe")
 	if err != nil {
+		fmt.Printf("err != nil\n")
 		return "", fmt.Errorf("-> filepath.Glob: %s", err)
 	}
+
+	fmt.Printf("after err != nil\n")
+
 	for _, file := range matches {
 		target, _ := os.Readlink(file)
 		if len(target) > 0 {
 			fmt.Printf("%+v\n", target)
 		}
 	}
+
+	fmt.Printf("after err != nil\n")
 
 	return "", nil
 }

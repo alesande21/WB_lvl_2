@@ -50,7 +50,7 @@ func main() {
 	var command string
 	fmt.Printf("Добро пожаловать в MyShall!\n")
 	for {
-		fmt.Printf("MyShell :%s>", myShell.CurrentLocation())
+		fmt.Printf("MyShell :%s> ", myShell.CurrentLocation())
 		text, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Printf("->reader.ReadString: ошибка при считывания команды: %s", err)
