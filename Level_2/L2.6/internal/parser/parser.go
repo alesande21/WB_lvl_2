@@ -35,8 +35,8 @@ func (p *Parser) ParseFlags() (*Flag, *FilePath, error) {
 		f.b = true
 	}
 
-	filePath, err := p.checkFilePath()
-	return &f, &filePath, err
+	//filePath, err := p.checkFilePath()
+	return &f, nil, err
 }
 
 func (p Parser) checkFilePath() (FilePath, error) {
