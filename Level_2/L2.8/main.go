@@ -10,27 +10,35 @@ import (
 func or(channels ...<-chan interface{}) <-chan interface{} {
 	var wg sync.WaitGroup
 	wg.Add(len(channels))
+	out := make(chan interface{})
+	go func() {
+		defer close(out)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	//go func() {
-	for _, chIn := range channels {
-		go func(channelIn <-chan interface{}, ctx context.Context) {
-			defer wg.Done()
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				case <-channelIn:
-					cancel()
+		for _, chIn := range channels {
+			go func(in <-chan interface{}, ctx context.Context) {
+				defer wg.Done()
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case <-in:
+						cancel()
+						close(out)
+					default:
+						continue
+					}
 				}
-			}
-		}(chIn, ctx)
+				fmt.Printf("exit\n")
+			}(chIn, ctx)
 
-	}
-	//}()
+		}
+	}()
 
-	return chOut
+	fmt.Printf("AAAA\n")
+
+	return out
 }
 
 func main() {
