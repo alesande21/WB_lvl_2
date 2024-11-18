@@ -36,3 +36,28 @@ func (r *Router) getHandler(method, path string) http.Handler {
 	}
 	return http.NotFoundHandler()
 }
+
+func (r *Router) GET(path string, handler http.Handler) {
+	r.AddRoute("GET", path, handler)
+}
+
+func (r *Router) POST(path string, handler http.Handler) {
+	r.AddRoute("POST", path, handler)
+}
+
+func (r *Router) DELETE(path string, handler http.Handler) {
+	r.AddRoute("DELETE", path, handler)
+}
+
+func (r *Router) PUT(path string, handler http.Handler) {
+	r.AddRoute("PUT", path, handler)
+}
+
+func (r *Router) ServerHTTP(w http.ResponseWriter, req *http.Request) {
+	path := req.URL.Path
+	method := req.Method
+
+	handler := r.getHandler(method, path)
+
+	handler.ServeHTTP(w, req)
+}
