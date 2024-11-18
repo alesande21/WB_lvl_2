@@ -1,40 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"sync"
-	"time"
+	"os"
 )
 
-func or(channels ...<-chan interface{}) <-chan interface{} {
-	out := make(chan interface{})
-	var once sync.Once
-	go func() {
-		for _, ch := range channels {
-			go func(in <-chan interface{}) {
-				select {
-				case <-in:
-					once.Do(func() { close(out) })
-				}
-			}(ch)
-		}
-	}()
-
-	return out
-}
-
 func main() {
-	sig := func(after time.Duration) <-chan interface{} {
-		c := make(chan interface{})
-		go func() {
-			defer close(c)
-			time.Sleep(after)
-		}()
-		return c
+	var in string
+
+	scanner := bufio.NewScanner(os.Stdin)
+
+	if scanner.Scan() {
+		in = scanner.Text()
 	}
-	start := time.Now()
-	<-or(sig(1*time.Second),
-		sig(1*time.Second),
-		sig(1*time.Second))
-	fmt.Printf("fone after %v", time.Since(start))
+
+	fmt.Printf("%s", in)
+
 }
