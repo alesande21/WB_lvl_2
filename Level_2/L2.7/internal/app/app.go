@@ -2,12 +2,14 @@ package app
 
 import (
 	"fmt"
+	"myCut/internal/cut"
 	parser2 "myCut/internal/parser"
 	"os"
 )
 
 func Run() int {
 	parser := parser2.NewParser()
+	cutter := cut.NewCut()
 
 	flags, err := parser.ParseFlags(os.Args[1:])
 	if err != nil {
@@ -15,8 +17,7 @@ func Run() int {
 		return -1
 	}
 
-	fmt.Printf("%v\n", flags)
-	fmt.Printf("line: %v", line)
+	cutter.Start(flags)
 
 	return 0
 }
