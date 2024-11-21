@@ -15,38 +15,35 @@ func NewCut() *MyCut {
 }
 
 func (mc *MyCut) Start(flags *parser.Flags) error {
-	var slcLine []string
+	//var slcLine []string
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if !flags.D() && !flags.S() {
-			fmt.Printf("%s", line)
+		if !flags.S() && !flags.D() {
+			fmt.Printf("%v\n", line)
 			continue
 		}
 
-		if flags.D() {
-			slcLine = strings.Split(line, flags.DValue())
+		parts := strings.Split(line, flags.DValue())
+		if flags.S() && len(parts) < 2 {
+			continue
 		}
 
-		if flags.S() {
-			if len(slcLine) > 1 {
-				if flags.FValue()-1 > len(slcLine) {
-					fmt.Println("")
-				} else {
-					fmt.Printf("%v\n", slcLine[flags.FValue()-1])
-				}
+		if flags.F() {
+			fieldIndex := flags.FValue() - 1
+
+			if len(parts) < 2 {
+				fmt.Printf("%v\n", line)
+			} else if fieldIndex >= 0 && fieldIndex < len(parts) {
+				fmt.Println(parts[fieldIndex])
+			} else {
+				fmt.Println("")
 			}
 		} else {
-			if len(slcLine) < 2 {
-				fmt.Printf("%v", line)
-			} else if flags.FValue()-1 > len(slcLine) {
-				fmt.Println("")
-			} else {
-				fmt.Printf("%v\n", slcLine[flags.FValue()-1])
-			}
+			fmt.Println(line)
 		}
 
 	}
@@ -57,3 +54,8 @@ func (mc *MyCut) Start(flags *parser.Flags) error {
 
 	return nil
 }
+
+/*
+echo -e "field1\tfield2\tfield3\nfield4\tfield5" > input.txt
+./myCut -f2 < input.txt
+*/

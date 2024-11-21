@@ -26,7 +26,7 @@ func NewParser() *Parser {
 func (p *Parser) ParseFlags(args []string) (*Flags, error) {
 	var fs Flags
 	var err error
-
+	fs.DefD()
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-f") {
 			err = fs.f.Set(arg)

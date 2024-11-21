@@ -12,6 +12,10 @@ type Flags struct {
 	s bool
 }
 
+func (fs *Flags) DefD() {
+	fs.d.SetSep("\t")
+}
+
 func (fs Flags) F() bool {
 	return fs.f.Enabled()
 }
@@ -81,6 +85,10 @@ func (ff *flagF) Set(value string) error {
 type flagD struct {
 	enabled bool
 	sep     string
+}
+
+func (fd *flagD) SetSep(sep string) {
+	fd.sep = sep
 }
 
 func (fd *flagD) Enabled() bool {
