@@ -12,15 +12,42 @@ type Flags struct {
 	s bool
 }
 
+func (fs Flags) F() bool {
+	return fs.f.Enabled()
+}
+
+func (fs Flags) FValue() int {
+	return fs.f.Index()
+}
+
+func (fs Flags) D() bool {
+	return fs.d.Enabled()
+}
+
+func (fs Flags) DValue() string {
+	return fs.d.Sep()
+}
+
+func (fs Flags) S() bool {
+	return fs.s
+}
+
 type flagF struct {
 	enabled bool
-	start   int
-	end     int
+	index   int
+}
+
+func (ff *flagF) Enabled() bool {
+	return ff.enabled
+}
+
+func (ff *flagF) Index() int {
+	return ff.index
 }
 
 func (ff *flagF) String() string {
 	if ff.enabled {
-		str := fmt.Sprintf("{start:%v, end:%v}", ff.start, ff.end)
+		str := fmt.Sprintf("{index:%v}", ff.index)
 		return str
 	}
 	return ""
@@ -46,7 +73,7 @@ func (ff *flagF) Set(value string) error {
 		return fmt.Errorf("values may not include zero or below\n")
 	}
 	ff.enabled = true
-	ff.start = num
+	ff.index = num
 
 	return nil
 }
@@ -54,6 +81,14 @@ func (ff *flagF) Set(value string) error {
 type flagD struct {
 	enabled bool
 	sep     string
+}
+
+func (fd *flagD) Enabled() bool {
+	return fd.enabled
+}
+
+func (fd *flagD) Sep() string {
+	return fd.sep
 }
 
 func (fd *flagD) String() string {

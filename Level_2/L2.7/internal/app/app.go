@@ -9,7 +9,7 @@ import (
 func Run() int {
 	parser := parser2.NewParser()
 
-	flags, line, err := parser.ParseFlags(os.Args[1:])
+	flags, err := parser.ParseFlags(os.Args[1:])
 	if err != nil {
 		fmt.Printf("%v", err)
 		return -1

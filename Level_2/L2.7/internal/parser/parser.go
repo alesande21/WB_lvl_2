@@ -9,46 +9,48 @@ type Input struct {
 	text string
 }
 
+func (i *Input) Text() string {
+	return i.text
+}
+
+func (i *Input) SetText(text string) {
+	i.text = text
+}
+
 type Parser struct{}
 
 func NewParser() *Parser {
 	return &Parser{}
 }
 
-func (p *Parser) ParseFlags(args []string) (*Flags, *Input, error) {
+func (p *Parser) ParseFlags(args []string) (*Flags, error) {
 	var fs Flags
 	var err error
-	var end int
 
-	for i, arg := range args {
-		end = i + 1
+	for _, arg := range args {
 		if strings.HasPrefix(arg, "-f") {
 			err = fs.f.Set(arg)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 		} else if strings.HasPrefix(arg, "-d") {
 			err = fs.d.Set(arg)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 		} else if strings.HasPrefix(arg, "-s") {
 			fs.s = true
 		} else {
-			end -= 1
-			break
+			return nil, fmt.Errorf("таких флагов не существует. используйте -f -d -s")
 		}
 
 	}
 
-	var in Input
-	in.text = strings.Join(args[end:], " ")
-
 	if !fs.f.enabled {
-		return nil, nil, fmt.Errorf("%v", "недостаточно флагов. usage: cut -f -otherFlags [text]\n")
+		return nil, fmt.Errorf("%v", "недостаточно флагов. usage: cut -f -otherFlags [text]\n")
 	}
 
-	return &fs, &in, nil
+	return &fs, nil
 }
 
 func (fs Flags) String() string {
