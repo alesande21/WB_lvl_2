@@ -1,9 +1,13 @@
 package parser
 
 import (
-	"flag"
-	"os"
+	"fmt"
+	"strings"
 )
+
+type Input struct {
+	text string
+}
 
 type Parser struct{}
 
@@ -11,21 +15,42 @@ func NewParser() *Parser {
 	return &Parser{}
 }
 
-func (p *Parser) ParseFlags() (*Flag, *FilePath, error) {
-	var f Flag
+func (p *Parser) ParseFlags(args []string) (*Flags, *Input, error) {
+	var fs Flags
 	var err error
-	os.Args, _ = p.checkFlagK(&f.k)
-	flag.Var(&f.k, "k", "указание колонки для сортировки (слова в строке могут выступать "+
-		"в качестве колонок, по умолчанию разделитель — пробел)")
-	flag.BoolVar(&f.n, "n", false, "сортировать по числовому значению")
-	flag.BoolVar(&f.r, "r", false, "сортировать в обратном порядке")
-	flag.BoolVar(&f.u, "u", false, "не выводить повторяющиеся строки")
-	flag.BoolVar(&f.m, "M", false, "сортировать по названию месяца")
-	flag.BoolVar(&f.b, "b", false, "игнорировать хвостовые пробелы")
-	flag.BoolVar(&f.c, "c", false, "проверять отсортированы ли данные")
-	flag.BoolVar(&f.h, "h", false, "сортировать по числовому значению с учетом суффиксов")
-	flag.Parse()
+	var end int
 
-	filePath, err := p.checkFilePath()
-	return &f, &filePath, err
+	for i, arg := range args {
+		end = i + 1
+		if strings.HasPrefix(arg, "-f") {
+			err = fs.f.Set(arg)
+			if err != nil {
+				return nil, nil, err
+			}
+		} else if strings.HasPrefix(arg, "-d") {
+			err = fs.d.Set(arg)
+			if err != nil {
+				return nil, nil, err
+			}
+		} else if strings.HasPrefix(arg, "-s") {
+			fs.s = true
+		} else {
+			end -= 1
+			break
+		}
+
+	}
+
+	var in Input
+	in.text = strings.Join(args[end:], " ")
+
+	if !fs.f.enabled {
+		return nil, nil, fmt.Errorf("%v", "недостаточно флагов. usage: cut -f -otherFlags [text]\n")
+	}
+
+	return &fs, &in, nil
+}
+
+func (fs Flags) String() string {
+	return fmt.Sprintf("{f:%v, d:%v, s:%v}", fs.f, fs.d, fs.s)
 }

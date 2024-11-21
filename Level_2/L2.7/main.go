@@ -1,20 +1,28 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	parser2 "myCut/internal/parser"
 	"os"
 )
 
 func main() {
-	var in string
+	//var in string
+	//
+	//scanner := bufio.NewScanner(os.Stdin)
+	//
+	//if scanner.Scan() {
+	//	in = scanner.Text()
+	//}
 
-	scanner := bufio.NewScanner(os.Stdin)
+	parser := parser2.NewParser()
 
-	if scanner.Scan() {
-		in = scanner.Text()
+	flags, line, err := parser.ParseFlags(os.Args[1:])
+	if err != nil {
+		fmt.Printf("%v", err)
 	}
 
-	fmt.Printf("%s", in)
+	fmt.Printf("%v", flags)
+	fmt.Printf("line: %v", line)
 
 }
