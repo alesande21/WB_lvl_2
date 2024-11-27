@@ -3,10 +3,10 @@ module calendarEvent
 go 1.21.0
 
 require (
+	github.com/gorilla/mux v1.8.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/invopop/yaml v0.3.1
 	github.com/lib/pq v1.10.9
-	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/net v0.31.0
 )

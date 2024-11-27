@@ -1,7 +1,7 @@
 package database
 
 import (
-	"WB_ZeroProject/internal/colorAttribute"
+	"calendarEvent/internal/colorAttribute"
 	"context"
 	"database/sql"
 	"fmt"
@@ -69,7 +69,7 @@ func (db *DBConnection) GetConn() *sql.DB {
 	return db.Conn
 }
 
-func (db *DBConnection) CheckConn(ctx context.Context, cfg *DBConfig, updateCache chan interface{}) error {
+func (db *DBConnection) CheckConn(ctx context.Context, cfg *DBConfig) error {
 	var err error
 	attempt := 0
 
@@ -94,7 +94,6 @@ func (db *DBConnection) CheckConn(ctx context.Context, cfg *DBConfig, updateCach
 				} else {
 					log2.Info("Соединение с базой данных успешно восстановлена!")
 					db.Conn = newDb
-					updateCache <- struct{}{}
 					attempt = 0
 				}
 			}

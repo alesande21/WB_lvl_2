@@ -1,7 +1,7 @@
 package config
 
 import (
-	"WB_ZeroProject/internal/database"
+	"calendarEvent/internal/database"
 	"errors"
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
