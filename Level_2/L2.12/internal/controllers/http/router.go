@@ -8,7 +8,6 @@ import (
 	log2 "github.com/sirupsen/logrus"
 	"log"
 	"net/http"
-	"runtime"
 	"time"
 )
 
@@ -72,7 +71,7 @@ func createEventHandler(service *service.EventService) http.HandlerFunc {
 			return
 		}
 
-		err = service.Repo.CreateEvent(r.Context(), event)
+		err = service.Repo.Create(r.Context(), event)
 		if err != nil {
 			sendErrorResponse(w, http.StatusInternalServerError, ErrorResponse{Reason: "Не удалось создать ивент."})
 			return
@@ -96,31 +95,41 @@ func updateEventHandler(service *service.EventService) http.HandlerFunc {
 			return
 		}
 
-		err := runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
-
 		err := r.ParseForm()
 		if err != nil {
 			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Неверные параметры запроса."})
 			return
 		}
 
-		id := r.FormValue("id")
-		title := r.FormValue("title")
-		date := r.FormValue("date")
+		reqId := r.FormValue("id")
+		reqIdUser := r.FormValue("id_user")
 
-		if id == "" || title == "" || date == "" {
-			http.Error(w, `{"error":"не переданы обязательные параметры"}`, http.StatusBadRequest)
+		if reqId == "" || reqIdUser == "" {
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не переданы обязательные параметры."})
 			return
 		}
 
-		err = service.UpdateEvent(id, title, date)
+		event, status, err := ParseAndValidationUpdateReq(r, reqId, reqIdUser)
+		if err != nil {
+			log.Println("Неверный формат для извения ивента!")
+			sendErrorResponse(w, status, ErrorResponse{Reason: "Неверный формат для предложения."})
+			return
+		}
+
+		event, err = service.UpdateEvent(r.Context(), event)
 		if err != nil {
 			http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusServiceUnavailable)
+
 			return
 		}
 
+		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"result":"event updated"}`))
+		msg := "Ивент принят в обработку."
+		if err := json.NewEncoder(w).Encode(msg); err != nil {
+			log2.Errorf("CreateOrder-> json.NewEncoder: ошибка при кодирования овета: %s", err.Error())
+			sendErrorResponse(w, http.StatusInternalServerError, ErrorResponse{Reason: "Ошибка кодирования ответа."})
+		}
 	}
 }
 
@@ -232,6 +241,25 @@ func ParseAndValidation(r *http.Request) (*entity.Event, int, error) {
 
 	event.Title = jEvent.Title
 	event.UserID = jEvent.UserID
+	event.Date = jEvent.Date
+
+	return &event, 200, nil
+}
+
+func ParseAndValidationUpdateReq(r *http.Request, id string, idUser string) (*entity.Event, int, error) {
+	var jEvent RequestUpdateJSONEvent
+	var event entity.Event
+	if err := json.NewDecoder(r.Body).Decode(&jEvent); err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+
+	if jEvent.Title == "" {
+		return nil, http.StatusBadRequest, fmt.Errorf("неверный формат ивента")
+	}
+
+	event.ID = id
+	event.UserID = idUser
+	event.Title = jEvent.Title
 	event.Date = jEvent.Date
 
 	return &event, 200, nil
