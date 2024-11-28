@@ -30,8 +30,8 @@ type RequestUpdateJSONEvent struct {
 func NewRouter(orderService *service.EventService) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/create_event", logMiddleware(createEventHandler(orderService)))
-	mux.HandleFunc("/update_event/{id}/{id_user}", logMiddleware(updateEventHandler(orderService)))
-	mux.HandleFunc("/delete_event/{id}/{id_user}", logMiddleware(deleteEventHandler(orderService)))
+	mux.HandleFunc("/update_event", logMiddleware(updateEventHandler(orderService)))
+	mux.HandleFunc("/delete_event", logMiddleware(deleteEventHandler(orderService)))
 	mux.HandleFunc("/events_for_day/{date_time}", logMiddleware(eventsForDayHandler(orderService)))
 	mux.HandleFunc("/events_for_week/{date_time}", logMiddleware(eventsForWeekHandler(orderService)))
 	mux.HandleFunc("/events_for_month/{date_time}", logMiddleware(eventsForMonthHandler(orderService)))
@@ -156,7 +156,7 @@ func deleteEventHandler(service *service.EventService) http.HandlerFunc {
 
 		err = service.DeleteEvent(r.Context(), reqId, reqIdUser)
 		if err != nil {
-			sendErrorResponse(w, http.StatusServiceUnavailable, ErrorResponse{Reason: "Не удалось удалить."})
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не удалось удалить."})
 			return
 		}
 
@@ -173,63 +173,72 @@ func deleteEventHandler(service *service.EventService) http.HandlerFunc {
 // ивенты за день
 func eventsForDayHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		date := r.URL.Query().Get("date")
+		date := r.URL.Query().Get("date_time")
 		if date == "" {
 			http.Error(w, `{"error":"не передана дата"}`, http.StatusBadRequest)
 			return
 		}
 
-		events, err := service.GetEventsForDay(date)
+		events, err := service.Repo.GetEventsByDay(r.Context(), date)
 		if err != nil {
-			http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusServiceUnavailable)
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не удалось получить список ивентов."})
 			return
 		}
 
-		response, _ := json.Marshal(map[string]interface{}{"result": events})
+		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(response)
+		if err := json.NewEncoder(w).Encode(events); err != nil {
+			log2.Errorf("CreateOrder-> json.NewEncoder: ошибка при кодирования овета: %s", err.Error())
+			sendErrorResponse(w, http.StatusInternalServerError, ErrorResponse{Reason: "Ошибка кодирования ответа."})
+		}
 	}
 }
 
-// eventsForWeekHandler обрабатывает запрос событий на неделю
+// за неделю
 func eventsForWeekHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		date := r.URL.Query().Get("date")
+		date := r.URL.Query().Get("date_time")
 		if date == "" {
 			http.Error(w, `{"error":"не передана дата"}`, http.StatusBadRequest)
 			return
 		}
 
-		events, err := service.GetEventsForWeek(date)
+		events, err := service.Repo.GetEventsByWeek(r.Context(), date)
 		if err != nil {
-			http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusServiceUnavailable)
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не удалось получить список ивентов."})
 			return
 		}
 
-		response, _ := json.Marshal(map[string]interface{}{"result": events})
+		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(response)
+		if err := json.NewEncoder(w).Encode(events); err != nil {
+			log2.Errorf("CreateOrder-> json.NewEncoder: ошибка при кодирования овета: %s", err.Error())
+			sendErrorResponse(w, http.StatusInternalServerError, ErrorResponse{Reason: "Ошибка кодирования ответа."})
+		}
 	}
 }
 
-// eventsForMonthHandler обрабатывает запрос событий на месяц
+// за месяц
 func eventsForMonthHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		date := r.URL.Query().Get("date")
+		date := r.URL.Query().Get("date_time")
 		if date == "" {
 			http.Error(w, `{"error":"не передана дата"}`, http.StatusBadRequest)
 			return
 		}
 
-		events, err := service.GetEventsForMonth(date)
+		events, err := service.Repo.GetEventsByMonth(r.Context(), date)
 		if err != nil {
-			http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusServiceUnavailable)
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не удалось получить список ивентов."})
 			return
 		}
 
-		response, _ := json.Marshal(map[string]interface{}{"result": events})
+		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(response)
+		if err := json.NewEncoder(w).Encode(events); err != nil {
+			log2.Errorf("CreateOrder-> json.NewEncoder: ошибка при кодирования овета: %s", err.Error())
+			sendErrorResponse(w, http.StatusInternalServerError, ErrorResponse{Reason: "Ошибка кодирования ответа."})
+		}
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"calendarEvent/internal/entity"
 	"context"
 	"log"
+	"time"
 )
 
 type EventRepo interface {
@@ -11,6 +12,9 @@ type EventRepo interface {
 	Update(ctx context.Context, event *entity.Event) (*entity.Event, error)
 	FindById(ctx context.Context, id string) (*entity.Event, error)
 	Delete(ctx context.Context, id string) error
+	GetEventsByWeek(ctx context.Context, date time.Time) ([]entity.Event, error)
+	GetEventsByDay(ctx context.Context, date time.Time) ([]entity.Event, error)
+	GetEventsByMonth(ctx context.Context, date time.Time) ([]entity.Event, error)
 	Ping() error
 }
 
@@ -65,16 +69,4 @@ func (s *EventService) DeleteEvent(ctx context.Context, id string, idUser string
 	}
 
 	return nil
-}
-
-func (s *EventService) GetEventsForDay(date string) ([]string, error) {
-	return []string{"Event1"}, nil
-}
-
-func (s *EventService) GetEventsForWeek(date string) ([]string, error) {
-	return []string{"Event1"}, nil
-}
-
-func (s *EventService) GetEventsForMonth(date string) ([]string, error) {
-	return []string{"Event1"}, nil
 }
