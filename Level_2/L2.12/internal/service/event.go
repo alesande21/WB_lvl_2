@@ -1,9 +1,12 @@
 package service
 
-import "context"
+import (
+	"calendarEvent/internal/entity"
+	"context"
+)
 
 type EventRepo interface {
-	CreateOrder(ctx context.Context) error
+	CreateEvent(ctx context.Context, event *entity.Event) error
 	Ping() error
 }
 
