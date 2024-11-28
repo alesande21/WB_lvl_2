@@ -32,9 +32,9 @@ func NewRouter(orderService *service.EventService) http.Handler {
 	mux.HandleFunc("/create_event", logMiddleware(createEventHandler(orderService)))
 	mux.HandleFunc("/update_event", logMiddleware(updateEventHandler(orderService)))
 	mux.HandleFunc("/delete_event", logMiddleware(deleteEventHandler(orderService)))
-	mux.HandleFunc("/events_for_day/{date_time}", logMiddleware(eventsForDayHandler(orderService)))
-	mux.HandleFunc("/events_for_week/{date_time}", logMiddleware(eventsForWeekHandler(orderService)))
-	mux.HandleFunc("/events_for_month/{date_time}", logMiddleware(eventsForMonthHandler(orderService)))
+	mux.HandleFunc("/events_for_day", logMiddleware(eventsForDayHandler(orderService)))
+	mux.HandleFunc("/events_for_week", logMiddleware(eventsForWeekHandler(orderService)))
+	mux.HandleFunc("/events_for_month", logMiddleware(eventsForMonthHandler(orderService)))
 	return mux
 }
 
@@ -63,7 +63,7 @@ func createEventHandler(service *service.EventService) http.HandlerFunc {
 			return
 		}
 
-		event, status, err := ParseAndValidation(r)
+		event, status, err := ParseAndValidationEvent(r)
 
 		if err != nil {
 			log.Println("Неверный формат для ивента!")
@@ -95,21 +95,7 @@ func updateEventHandler(service *service.EventService) http.HandlerFunc {
 			return
 		}
 
-		err := r.ParseForm()
-		if err != nil {
-			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Неверные параметры запроса."})
-			return
-		}
-
-		reqId := r.FormValue("id")
-		reqIdUser := r.FormValue("id_user")
-
-		if reqId == "" || reqIdUser == "" {
-			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не переданы обязательные параметры."})
-			return
-		}
-
-		event, status, err := ParseAndValidationUpdateReq(r, reqId, reqIdUser)
+		event, status, err := ParseAndValidationEvent(r)
 		if err != nil {
 			log.Println("Неверный формат для извения ивента!")
 			sendErrorResponse(w, status, ErrorResponse{Reason: "Неверный формат для предложения."})
@@ -175,11 +161,19 @@ func eventsForDayHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		date := r.URL.Query().Get("date_time")
 		if date == "" {
-			http.Error(w, `{"error":"не передана дата"}`, http.StatusBadRequest)
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не передана дата."})
 			return
 		}
 
-		events, err := service.Repo.GetEventsByDay(r.Context(), date)
+		layout := "2006-01-02"
+		parsedTime, err := time.Parse(layout, date)
+		if err != nil {
+			log.Println("Ошибка при парсинге времени!")
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Формат даты неверный."})
+			return
+		}
+
+		events, err := service.Repo.GetEventsByDay(r.Context(), parsedTime)
 		if err != nil {
 			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не удалось получить список ивентов."})
 			return
@@ -199,11 +193,19 @@ func eventsForWeekHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		date := r.URL.Query().Get("date_time")
 		if date == "" {
-			http.Error(w, `{"error":"не передана дата"}`, http.StatusBadRequest)
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не передана дата."})
 			return
 		}
 
-		events, err := service.Repo.GetEventsByWeek(r.Context(), date)
+		layout := "2006-01-02"
+		parsedTime, err := time.Parse(layout, date)
+		if err != nil {
+			log.Println("Ошибка при парсинге времени!")
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Формат даты неверный."})
+			return
+		}
+
+		events, err := service.Repo.GetEventsByWeek(r.Context(), parsedTime)
 		if err != nil {
 			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не удалось получить список ивентов."})
 			return
@@ -221,13 +223,20 @@ func eventsForWeekHandler(service *service.EventService) http.HandlerFunc {
 // за месяц
 func eventsForMonthHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		date := r.URL.Query().Get("date_time")
+		date := r.URL.Query().Get("date")
 		if date == "" {
 			http.Error(w, `{"error":"не передана дата"}`, http.StatusBadRequest)
 			return
 		}
 
-		events, err := service.Repo.GetEventsByMonth(r.Context(), date)
+		layout := "2006-01-02"
+		parsedTime, err := time.Parse(layout, date)
+		if err != nil {
+			log.Println("Ошибка при парсинге времени!")
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Формат даты неверный."})
+			return
+		}
+		events, err := service.Repo.GetEventsByMonth(r.Context(), parsedTime)
 		if err != nil {
 			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не удалось получить список ивентов."})
 			return
@@ -242,39 +251,31 @@ func eventsForMonthHandler(service *service.EventService) http.HandlerFunc {
 	}
 }
 
-func ParseAndValidation(r *http.Request) (*entity.Event, int, error) {
-	var jEvent jsonEvent
-	var event entity.Event
-	if err := json.NewDecoder(r.Body).Decode(&jEvent); err != nil {
+func ParseAndValidationEvent(r *http.Request) (*entity.Event, int, error) {
+	err := r.ParseForm()
+	if err != nil {
 		return nil, http.StatusBadRequest, err
 	}
 
-	if jEvent.Title == "" || jEvent.UserID == "" {
-		return nil, http.StatusBadRequest, fmt.Errorf("неверный формат ивента")
+	title := r.FormValue("title")
+	dateStr := r.FormValue("date")
+	userID := r.FormValue("user_id")
+	eventID := r.FormValue("id")
+
+	if title == "" || dateStr == "" || userID == "" {
+		return nil, http.StatusBadRequest, fmt.Errorf("пропущены поля")
 	}
 
-	event.Title = jEvent.Title
-	event.UserID = jEvent.UserID
-	event.Date = jEvent.Date
-
-	return &event, 200, nil
-}
-
-func ParseAndValidationUpdateReq(r *http.Request, id string, idUser string) (*entity.Event, int, error) {
-	var jEvent RequestUpdateJSONEvent
-	var event entity.Event
-	if err := json.NewDecoder(r.Body).Decode(&jEvent); err != nil {
-		return nil, http.StatusBadRequest, err
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return nil, http.StatusBadRequest, fmt.Errorf("неверный формат даты")
 	}
 
-	if jEvent.Title == "" {
-		return nil, http.StatusBadRequest, fmt.Errorf("неверный формат ивента")
+	event := &entity.Event{
+		ID:     eventID,
+		UserID: userID,
+		Title:  title,
+		Date:   date,
 	}
-
-	event.ID = id
-	event.UserID = idUser
-	event.Title = jEvent.Title
-	event.Date = jEvent.Date
-
-	return &event, 200, nil
+	return event, http.StatusOK, nil
 }

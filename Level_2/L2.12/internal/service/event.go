@@ -8,7 +8,7 @@ import (
 )
 
 type EventRepo interface {
-	Create(ctx context.Context, event *entity.Event) error
+	Create(ctx context.Context, event *entity.Event) (*entity.Event, error)
 	Update(ctx context.Context, event *entity.Event) (*entity.Event, error)
 	FindById(ctx context.Context, id string) (*entity.Event, error)
 	Delete(ctx context.Context, id string) error

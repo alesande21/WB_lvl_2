@@ -60,8 +60,8 @@ func Run() error {
 	//}
 
 	log.Println("Инициализация сервиса...")
-	orderRepo := repository2.NewEventRepo(postgresRep)
-	orderService := service2.NewOrderService(orderRepo)
+	eventRepo := repository2.NewEventRepo(postgresRep)
+	eventService := service2.NewOrderService(eventRepo)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -84,7 +84,7 @@ func Run() error {
 	//}
 	//swagger.Servers = nil
 
-	r := http2.NewRouter(orderService)
+	r := http2.NewRouter(eventService)
 
 	s := &http.Server{
 		Addr:    serverAddress.EnvAddress,
