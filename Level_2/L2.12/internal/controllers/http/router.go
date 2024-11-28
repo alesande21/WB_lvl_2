@@ -30,11 +30,11 @@ type RequestUpdateJSONEvent struct {
 func NewRouter(orderService *service.EventService) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/create_event", logMiddleware(createEventHandler(orderService)))
-	mux.HandleFunc("/update_event", logMiddleware(updateEventHandler(orderService)))
-	mux.HandleFunc("/delete_event", logMiddleware(deleteEventHandler(orderService)))
-	mux.HandleFunc("/events_for_day", logMiddleware(eventsForDayHandler(orderService)))
-	mux.HandleFunc("/events_for_week", logMiddleware(eventsForWeekHandler(orderService)))
-	mux.HandleFunc("/events_for_month", logMiddleware(eventsForMonthHandler(orderService)))
+	mux.HandleFunc("/update_event/{id}/{id_user}", logMiddleware(updateEventHandler(orderService)))
+	mux.HandleFunc("/delete_event/{id}/{id_user}", logMiddleware(deleteEventHandler(orderService)))
+	mux.HandleFunc("/events_for_day/{date_time}", logMiddleware(eventsForDayHandler(orderService)))
+	mux.HandleFunc("/events_for_week/{date_time}", logMiddleware(eventsForWeekHandler(orderService)))
+	mux.HandleFunc("/events_for_month/{date_time}", logMiddleware(eventsForMonthHandler(orderService)))
 	return mux
 }
 
@@ -87,7 +87,7 @@ func createEventHandler(service *service.EventService) http.HandlerFunc {
 	}
 }
 
-// updateEventHandler обрабатывает обновление события
+// обновление события
 func updateEventHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -118,8 +118,7 @@ func updateEventHandler(service *service.EventService) http.HandlerFunc {
 
 		event, err = service.UpdateEvent(r.Context(), event)
 		if err != nil {
-			http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusServiceUnavailable)
-
+			sendErrorResponse(w, http.StatusServiceUnavailable, ErrorResponse{Reason: "Не удалось обновить."})
 			return
 		}
 
@@ -133,39 +132,45 @@ func updateEventHandler(service *service.EventService) http.HandlerFunc {
 	}
 }
 
-// deleteEventHandler обрабатывает удаление события
+// удаление события
 func deleteEventHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			http.Error(w, `{"error":"только POST методы поддерживаются"}`, http.StatusMethodNotAllowed)
+			sendErrorResponse(w, http.StatusMethodNotAllowed, ErrorResponse{Reason: "Только POST методы поддерживаются."})
 			return
 		}
 
 		err := r.ParseForm()
 		if err != nil {
-			http.Error(w, `{"error":"не удалось разобрать параметры"}`, http.StatusBadRequest)
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Неверные параметры запроса."})
 			return
 		}
 
-		id := r.FormValue("id")
+		reqId := r.FormValue("id")
+		reqIdUser := r.FormValue("id_user")
 
-		if id == "" {
-			http.Error(w, `{"error":"не передан id события"}`, http.StatusBadRequest)
+		if reqId == "" || reqIdUser == "" {
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Не переданы обязательные параметры."})
 			return
 		}
 
-		err = service.DeleteEvent(id)
+		err = service.DeleteEvent(r.Context(), reqId, reqIdUser)
 		if err != nil {
-			http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusServiceUnavailable)
+			sendErrorResponse(w, http.StatusServiceUnavailable, ErrorResponse{Reason: "Не удалось удалить."})
 			return
 		}
 
+		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"result":"event deleted"}`))
+		msg := "Ивент удален."
+		if err := json.NewEncoder(w).Encode(msg); err != nil {
+			log2.Errorf("CreateOrder-> json.NewEncoder: ошибка при кодирования овета: %s", err.Error())
+			sendErrorResponse(w, http.StatusInternalServerError, ErrorResponse{Reason: "Ошибка кодирования ответа."})
+		}
 	}
 }
 
-// eventsForDayHandler обрабатывает запрос событий на день
+// ивенты за день
 func eventsForDayHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		date := r.URL.Query().Get("date")

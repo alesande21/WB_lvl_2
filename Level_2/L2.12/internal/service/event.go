@@ -10,6 +10,7 @@ type EventRepo interface {
 	Create(ctx context.Context, event *entity.Event) error
 	Update(ctx context.Context, event *entity.Event) (*entity.Event, error)
 	FindById(ctx context.Context, id string) (*entity.Event, error)
+	Delete(ctx context.Context, id string) error
 	Ping() error
 }
 
@@ -28,7 +29,7 @@ func NewOrderService(repo EventRepo) *EventService {
 func (s *EventService) UpdateEvent(ctx context.Context, newEvent *entity.Event) (*entity.Event, error) {
 	foundedEvent, err := s.Repo.FindById(ctx, newEvent.ID)
 	if err != nil {
-		log.Printf("Ошибка выполнения запроса в UpdateEvent: %v\n", err)
+		log.Printf("Ошибка выполнения запроса в FindById: %v\n", err)
 		return nil, err
 	}
 
@@ -45,7 +46,24 @@ func (s *EventService) UpdateEvent(ctx context.Context, newEvent *entity.Event) 
 	return newEvent, nil
 }
 
-func (s *EventService) DeleteEvent(id string) error {
+func (s *EventService) DeleteEvent(ctx context.Context, id string, idUser string) error {
+	foundedEvent, err := s.Repo.FindById(ctx, id)
+	if err != nil {
+		log.Printf("Ошибка выполнения запроса в DeleteEvent: %v\n", err)
+		return err
+	}
+
+	if foundedEvent.UserID != idUser {
+		log.Printf("Нет прав доступа: %v\n", err)
+		return err
+	}
+
+	err = s.Repo.Delete(ctx, id)
+	if err != nil {
+		log.Printf("Не удалось удалить: %v\n", err)
+		return err
+	}
+
 	return nil
 }
 

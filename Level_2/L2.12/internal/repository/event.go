@@ -56,7 +56,7 @@ func (e *EventRepo) FindById(ctx context.Context, id string) (*entity.Event, err
 
 func (e *EventRepo) Update(ctx context.Context, event *entity.Event) (*entity.Event, error) {
 	query := `
-		UPDATE bid
+		UPDATE events
 		SET title = $2, date_time = $3
 		WHERE id = $1
 		RETURNING id, user_id, title, date_time
@@ -68,6 +68,20 @@ func (e *EventRepo) Update(ctx context.Context, event *entity.Event) (*entity.Ev
 	}
 
 	return event, nil
+}
+
+func (e *EventRepo) Delete(ctx context.Context, id string) error {
+	query := `
+		DELETE FROM events
+		WHERE id = $1
+	`
+
+	_, err := e.dbRepo.Exec(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (e *EventRepo) Ping() error {
