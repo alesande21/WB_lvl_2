@@ -11,7 +11,7 @@
 #ENTRYPOINT [ "/bin/sh", "-c", "/app/avito_service" ]
 
 # Используем официальный образ Go в качестве базового образа для сборки
-FROM golang:1.22 AS builder
+FROM golang:1.23 AS builder
 LABEL authors="alesande"
 
 # Устанавливаем рабочую директорию внутри контейнера
@@ -39,6 +39,7 @@ WORKDIR /app
 # Копируем скомпилированный бинарник из стадии сборки
 COPY --from=builder /app/wb_service /app/wb_service
 
+RUN ls
 # Делаем бинарный файл исполняемым
 RUN chmod +x /app/wb_service
 
