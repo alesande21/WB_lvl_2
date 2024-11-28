@@ -71,7 +71,7 @@ func createEventHandler(service *service.EventService) http.HandlerFunc {
 			return
 		}
 
-		err = service.Repo.Create(r.Context(), event)
+		_, err = service.Repo.Create(r.Context(), event)
 		if err != nil {
 			sendErrorResponse(w, http.StatusInternalServerError, ErrorResponse{Reason: "Не удалось создать ивент."})
 			return
