@@ -5,8 +5,10 @@ import (
 	"calendarEvent/internal/service"
 	"encoding/json"
 	"fmt"
+	log2 "github.com/sirupsen/logrus"
 	"log"
 	"net/http"
+	"runtime"
 	"time"
 )
 
@@ -19,6 +21,11 @@ type jsonEvent struct {
 
 type ErrorResponse struct {
 	Reason string `json:"reason"`
+}
+
+type RequestUpdateJSONEvent struct {
+	Title string    `json:"title"`
+	Date  time.Time `json:"date"`
 }
 
 func NewRouter(orderService *service.EventService) http.Handler {
@@ -49,10 +56,11 @@ func sendErrorResponse(w http.ResponseWriter, code int, resp ErrorResponse) {
 	}
 }
 
+// создание ивента
 func createEventHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			http.Error(w, `{"error":"только POST методы поддерживаются"}`, http.StatusMethodNotAllowed)
+			sendErrorResponse(w, http.StatusMethodNotAllowed, ErrorResponse{Reason: "Только POST методы поддерживаются."})
 			return
 		}
 
@@ -70,40 +78,29 @@ func createEventHandler(service *service.EventService) http.HandlerFunc {
 			return
 		}
 
+		w.WriteHeader(http.StatusAccepted)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"result":"event created"}`))
+		msg := "Ивент принят в обработку."
+		if err := json.NewEncoder(w).Encode(msg); err != nil {
+			log2.Errorf("CreateOrder-> json.NewEncoder: ошибка при кодирования овета: %s", err.Error())
+			sendErrorResponse(w, http.StatusInternalServerError, ErrorResponse{Reason: "Ошибка кодирования ответа."})
+		}
 	}
-}
-
-func ParseAndValidation(r *http.Request) (*entity.Event, int, error) {
-	var jEvent jsonEvent
-	var event entity.Event
-	if err := json.NewDecoder(r.Body).Decode(&jEvent); err != nil {
-		return nil, http.StatusBadRequest, err
-	}
-
-	if jEvent.Title == "" || jEvent.UserID == "" {
-		return nil, http.StatusBadRequest, fmt.Errorf("неверный формат ивента")
-	}
-
-	event.Title = jEvent.Title
-	event.UserID = jEvent.UserID
-	event.Date = jEvent.Date
-
-	return &event, 200, nil
 }
 
 // updateEventHandler обрабатывает обновление события
 func updateEventHandler(service *service.EventService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			http.Error(w, `{"error":"только POST методы поддерживаются"}`, http.StatusMethodNotAllowed)
+			sendErrorResponse(w, http.StatusMethodNotAllowed, ErrorResponse{Reason: "Только POST методы поддерживаются."})
 			return
 		}
 
+		err := runtime.BindQueryParameter("form", true, false, "limit", r.URL.Query(), &params.Limit)
+
 		err := r.ParseForm()
 		if err != nil {
-			http.Error(w, `{"error":"не удалось разобрать параметры"}`, http.StatusBadRequest)
+			sendErrorResponse(w, http.StatusBadRequest, ErrorResponse{Reason: "Неверные параметры запроса."})
 			return
 		}
 
@@ -220,4 +217,22 @@ func eventsForMonthHandler(service *service.EventService) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 	}
+}
+
+func ParseAndValidation(r *http.Request) (*entity.Event, int, error) {
+	var jEvent jsonEvent
+	var event entity.Event
+	if err := json.NewDecoder(r.Body).Decode(&jEvent); err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+
+	if jEvent.Title == "" || jEvent.UserID == "" {
+		return nil, http.StatusBadRequest, fmt.Errorf("неверный формат ивента")
+	}
+
+	event.Title = jEvent.Title
+	event.UserID = jEvent.UserID
+	event.Date = jEvent.Date
+
+	return &event, 200, nil
 }
