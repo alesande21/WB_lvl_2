@@ -21,12 +21,12 @@ func main() {
 
 	conn, err := connectToServer(address, timeout)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to connect: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Ошибка подключения: %v\n", err)
 		os.Exit(1)
 	}
 	defer conn.Close()
 
-	fmt.Printf("Connected to %s\n", address)
+	fmt.Printf("Соединение установленно %s\n", address)
 
 	stopChan := make(chan struct{})
 	go handleInput(conn, stopChan)
@@ -62,18 +62,20 @@ func handleInput(conn net.Conn, stopChan chan struct{}) {
 	for {
 		n, err := os.Stdin.Read(buf)
 		if err == io.EOF {
-			fmt.Println("EOF received, closing connection")
+			fmt.Println("EOF получен, закрываем соединение")
 			close(stopChan)
 			return
 		}
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Ошибка чтения при вводе: %v\n", err)
 			close(stopChan)
 			return
 		}
 
-		if _, err := conn.Write(buf[:n]); err != nil {
-			fmt.Fprintf(os.Stderr, "Error writing to connection: %v\n", err)
+		_, err = conn.Write(buf[:n])
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Ошибка записи в соединении: %v\n", err)
 			close(stopChan)
 			return
 		}
@@ -82,19 +84,20 @@ func handleInput(conn net.Conn, stopChan chan struct{}) {
 
 func handleOutput(conn net.Conn, done chan struct{}) {
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered from panic in handleOutput:", r)
+		r := recover()
+		if r != nil {
+			fmt.Println("Восстановление от паники в handleOutput:", r)
 		}
 	}()
 
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
-		fmt.Println("Received:", scanner.Text())
+		fmt.Println("Полученно:", scanner.Text())
 	}
 
 	select {
 	case <-done:
-		fmt.Println("Channel already closed")
+		fmt.Println("Канал уже закрыт")
 	default:
 		close(done)
 	}
@@ -106,7 +109,7 @@ func waitForSignal(stopChan chan struct{}) {
 
 	select {
 	case <-signalChan:
-		fmt.Println("\nSignal received, exiting...")
+		fmt.Println("\nСигнал получен, выходим...")
 		close(stopChan)
 	case <-stopChan:
 	}
